@@ -25,25 +25,20 @@ class MockupsController < ApplicationController
   def show
     session[:template_name] = params[:template_name]
     session[:parent_dir]    = params[:parent_dir]
-    template_path = File.join(['mockups', params[:parent_dir], params[:template_name]].compact)
-    render :template => template_path, :layout => extract_layout(template_path)
+    template_full_path = extract_full_path(File.join(['mockups', params[:parent_dir], params[:template_name]].compact))
+    render :file => template_full_path, :layout => extract_layout(template_full_path), :content_type => 'text/html'
   end
 
   private
-
-    def extract_layout(template_path)
-      full_path = File.join(Rails.root, 'app', 'views', template_path) 
-      located_files = Dir.glob("#{full_path}*")
-
-      return true if located_files.empty?
-
-      filename_components = File.basename(located_files[0]).split('.')
-
-      if filename_components.length < 4
-        true
-      else
-        filename_components.last
-      end
-    end
+  
+  def extract_full_path(file)
+    full_path = File.join(Rails.root, 'app', 'views', file) 
+    Dir.glob("#{full_path}*").first
+  end
+  
+  def extract_layout(file)
+     parts = File.basename(file).split('.')
+     parts.length < 4 || parts.last
+  end
 
 end
